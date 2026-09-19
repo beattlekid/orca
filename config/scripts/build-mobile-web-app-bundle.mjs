@@ -357,7 +357,10 @@ export async function mobileWebAppRouteClosure(routeModule) {
   const base = mobileWebAppBuildOptions(MOBILE_WEB_PAGE_ROUTES)
   const result = await esbuild.build({
     ...base,
-    entryPoints: ['app/h/_layout.tsx', routeModule],
+    // Extensionless, so `resolveExtensions` picks the same file the bundle ships: a route with a
+    // `.web.tsx` sibling resolves to that one, and naming the `.tsx` path explicitly would measure
+    // the native switch no browser ever loads.
+    entryPoints: ['app/h/_layout', routeModule.replace(/\.tsx?$/, '')],
     splitting: false,
     entryNames: '[name]',
     plugins: base.plugins.filter((plugin) => plugin.name !== ROUTE_MANIFEST_PLUGIN_NAME),
