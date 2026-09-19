@@ -87,9 +87,14 @@ const hash = (parts: string[] | string): string =>
 // the raw `/h/${hostId}/session/...` template it fed. No RPC call, method literal or JSX host
 // signature changed, and the render and style hashes did not move.
 
-const SCREEN_RPC_SCREEN_HOOKS = '919e7713f63d5e7e85616572bdeb0d4c1cc142a3159f179c70f91ac40aee6011'
+// C2.1 swaps the two clipboard writes onto the platform seam, so the comment-review hook gains one
+// hook call and one statement. Two of the family move: the hook list and the statement hash, each
+// by one entry. `semantics` does not — no RPC call, method literal or JSX host signature changed —
+// and the render and style hashes hold.
+
+const SCREEN_RPC_SCREEN_HOOKS = '0f66df2141117dfec2f8a0adb3f598312e6fda8e80833a365a645796f5ab48c3'
 const PRE_REFACTOR_DIFF_HOOKS = '93c7189b32bed8456cc51814fffa8ce80cf62011ef968a9d53ddec2b9686f58f'
-const SCREEN_RPC_STATEMENTS = '9473cab014932c1ac47946b94ae0cec863faed5df1af888cb09beeeff4b4bc6d'
+const SCREEN_RPC_STATEMENTS = 'dd8f33cb3cf96f5c39abac397cb77e35f59079291033a1866ead462b041ab979'
 const MAIN_REBASED_DECLARATIONS = '920a1b66445d10e2a64fbdbe9d7138a4ebe21bbccde1b9ac9c89267cecc584b9'
 const SCREEN_RPC_SEMANTICS = 'bb15f6a382612c827c88dee7ef92ca5f1e2aa7bcc36fbb5611232cc0f1f600ff'
 const PRE_REFACTOR_STYLES = '1db6af69c791d9963928541ad5310942fcbda6d984b422c90b6eb92b6816579a'
@@ -98,7 +103,7 @@ const SCREEN_RPC_RENDER_TREE = '46d5a3ce9d71a8281a1e7b17411fb1dd963a4f392a5d095b
 describe('Mobile Tasks refactor parity', () => {
   it('preserves recursively flattened hook and dependency order', () => {
     const screenHooks = readFlattenedMobileTasksHookSignatures('MobileTasksScreen')
-    expect(screenHooks).toHaveLength(350)
+    expect(screenHooks).toHaveLength(351)
     expect(hash(screenHooks)).toBe(SCREEN_RPC_SCREEN_HOOKS)
 
     const diffHooks = readFlattenedMobileTasksHookSignatures('GitHubPrFileDiff')
@@ -108,7 +113,7 @@ describe('Mobile Tasks refactor parity', () => {
 
   it('preserves every screen statement in execution order', () => {
     const statements = readFlattenedMobileTasksCoreStatements()
-    expect(statements).toHaveLength(417)
+    expect(statements).toHaveLength(418)
     expect(hash(statements)).toBe(SCREEN_RPC_STATEMENTS)
   })
 
