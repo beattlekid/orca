@@ -1,0 +1,65 @@
+/**
+ * Nothing the tasks page reaches opens a URL through react-native.
+ *
+ * Inside the shell's WebView react-native-web's `Linking.openURL` calls
+ * `window.open(url, '_blank')`, which both shells refuse — iOS returns nil from
+ * `createWebViewWith`, Android false from `onCreateWindow` — and resolves whether or not anything
+ * opened. So a call site left on that path reports success into a tap that did nothing, which is
+ * the one failure the `externalLink` grant exists to remove.
+ *
+ * The rule, not the twelve call sites it happens to have today: a module entering this closure
+ * later is held to it without anyone remembering to add it here.
+ */
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { describe, expect, it } from 'vitest'
+import { mobileWebAppRouteClosure } from './build-mobile-web-app-bundle.mjs'
+import { mobileWebAppDependenciesPresent } from './mobile-web-app-bundle-dependencies.mjs'
+
+const mobileDir = fileURLToPath(new URL('../../mobile/', import.meta.url))
+const describeClosure = mobileWebAppDependenciesPresent() ? describe : describe.skip
+
+/** The seam, as the web build resolves it: `.web.ts` wins under the builder's resolveExtensions,
+ *  and it is the one module in this closure allowed to reach react-native's `Linking`. */
+const SEAM = 'src/platform/external-link.web.ts'
+
+/** Whether a module reaches react-native's own `Linking`, by name or through a namespace import. */
+function reachesReactNativeLinking(source) {
+  const named = /import\s*\{[^}]*\bLinking\b[^}]*\}\s*from\s*'react-native'/s
+  const namespace = /import\s*\*\s*as\s*(\w+)\s*from\s*'react-native'/
+  const asNamespace = namespace.exec(source)
+  return (
+    named.test(source) || (asNamespace !== null && source.includes(`${asNamespace[1]}.Linking`))
+  )
+}
+
+describeClosure(
+  'the tasks page closure',
+  () => {
+    it('opens every external URL through the platform seam', async () => {
+      const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+      const offenders = closure.local
+        .filter((file) => file !== SEAM)
+        .filter((file) => {
+          try {
+            // Which module the name comes from, not which text a call site writes: the tasks tree
+            // still calls `Linking.openURL`, and that `Linking` is the barrel's seam-backed export.
+            return reachesReactNativeLinking(readFileSync(join(mobileDir, file), 'utf8'))
+          } catch {
+            return false
+          }
+        })
+      expect(offenders.sort()).toEqual([])
+    })
+
+    it('contains the seam, so the rule above is not vacuous', async () => {
+      // Without this an empty offender list would also be what a closure that reaches no link code
+      // at all produces, and the census would pass against a page that opens nothing.
+      const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+      expect(closure.local).toContain(SEAM)
+      expect(closure.local.length).toBeGreaterThan(400)
+    })
+  },
+  180_000
+)

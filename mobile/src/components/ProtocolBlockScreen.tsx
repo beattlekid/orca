@@ -1,4 +1,5 @@
-import { Linking, Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { openExternalLink } from '../platform/external-link'
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
 import { router } from 'expo-router'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { CompatVerdict } from '../transport/protocol-compat'
@@ -95,7 +96,9 @@ export function ProtocolBlockScreen({ verdict }: Props) {
           <Pressable
             style={({ pressed }) => [styles.primaryButton, pressed && styles.pressed]}
             onPress={() => {
-              void Linking.openURL(primaryAction.url)
+              // The seam: this screen is in the tasks page closure, where react-native's `openURL`
+              // calls a `window.open` both shells refuse and resolves anyway.
+              openExternalLink(primaryAction.url)
             }}
           >
             <Text style={styles.primaryButtonText}>{primaryAction.label}</Text>
