@@ -44,6 +44,10 @@
     {
       "file": "src/components/pr-sidebar/MermaidDiagram.web.tsx",
       "reason": "The native component renders the diagram inside a sandboxed WebView, and react-native-webview is a native component with no browser counterpart: importing it runs a codegen lookup that throws, and the route manifest imports every route, so one such import takes the whole page down rather than one diagram. This one renders the labelled source box the native component already falls back to on a parse or render error. A real browser renderer is reachable — mermaid is a browser library and the engine bundle is vendored — but it is a different shape rather than a smaller one: with no WebView to sandbox untrusted diagram source in, the escaping buildHtml does for </script> and the line separators has to be replaced by whatever the DOM path needs, which is its own change with its own proof."
+    },
+    {
+      "file": "app/h/[hostId]/tasks.web.tsx",
+      "reason": "The shell renders this page for this route, so the page has no shell to mount inside itself and no flag to read; the switch already happened natively. Its native file reaches OrcaMobileWebShellView, whose module calls requireNativeViewManager at import and throws in a browser, and one throwing route module takes the whole bundle down because the manifest imports them all."
     }
   ]
 }
