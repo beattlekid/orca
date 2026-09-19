@@ -76,16 +76,22 @@ describeClosure(
  * Asserted as the module's absence from the closure rather than as a count of importers: a new
  * import anywhere in the tree puts the file back, whoever writes it and whatever they name it.
  */
-describeClosure('the clipboard the tasks page reaches', () => {
-  it("does not carry expo-clipboard's web module at all", async () => {
-    const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
-    const browserClipboard = closure.modules.filter((file) => /ExpoClipboard\.web\.js$/.test(file))
-    expect(browserClipboard).toEqual([])
-  })
+describeClosure(
+  'the clipboard the tasks page reaches',
+  () => {
+    it("does not carry expo-clipboard's web module at all", async () => {
+      const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+      const browserClipboard = closure.modules.filter((file) =>
+        file.endsWith('ExpoClipboard.web.js')
+      )
+      expect(browserClipboard).toEqual([])
+    })
 
-  it('carries the seam that replaced it, so the absence above is not vacuous', async () => {
-    // An empty list is also what a closure reaching no clipboard code at all would produce.
-    const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
-    expect(closure.local).toContain('src/platform/clipboard.web.ts')
-  })
-}, 180_000)
+    it('carries the seam that replaced it, so the absence above is not vacuous', async () => {
+      // An empty list is also what a closure reaching no clipboard code at all would produce.
+      const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+      expect(closure.local).toContain('src/platform/clipboard.web.ts')
+    })
+  },
+  180_000
+)
