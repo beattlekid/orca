@@ -26,7 +26,6 @@ export {
  */
 export const Linking: { openURL: (url: string) => void } = { openURL: openExternalLink }
 export { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-export * as Clipboard from 'expo-clipboard'
 export { useLocalSearchParams } from 'expo-router'
 /**
  * The router as this tree uses it: expo-router's on a phone, and the handoff inside the page.

@@ -1,5 +1,6 @@
 /**
- * Nothing the tasks page reaches opens a URL through react-native.
+ * Nothing the tasks page reaches opens a URL through react-native, or a clipboard through the
+ * browser's.
  *
  * Inside the shell's WebView react-native-web's `Linking.openURL` calls
  * `window.open(url, '_blank')`, which both shells refuse — iOS returns nil from
@@ -63,3 +64,28 @@ describeClosure(
   },
   180_000
 )
+
+/**
+ * Nothing the tasks page reaches writes the clipboard through the browser's own.
+ *
+ * `expo-clipboard` resolves to `ExpoClipboard.web.js`, which is `navigator.clipboard`: it needs a
+ * secure context, and the iOS shell serves the page from a custom scheme while Android serves
+ * `https`, so that path works on one platform and silently not on the other. The verb exists so
+ * neither has to be guessed at a call site.
+ *
+ * Asserted as the module's absence from the closure rather than as a count of importers: a new
+ * import anywhere in the tree puts the file back, whoever writes it and whatever they name it.
+ */
+describeClosure('the clipboard the tasks page reaches', () => {
+  it("does not carry expo-clipboard's web module at all", async () => {
+    const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+    const browserClipboard = closure.modules.filter((file) => /ExpoClipboard\.web\.js$/.test(file))
+    expect(browserClipboard).toEqual([])
+  })
+
+  it('carries the seam that replaced it, so the absence above is not vacuous', async () => {
+    // An empty list is also what a closure reaching no clipboard code at all would produce.
+    const closure = await mobileWebAppRouteClosure('app/h/[hostId]/tasks.tsx')
+    expect(closure.local).toContain('src/platform/clipboard.web.ts')
+  })
+}, 180_000)

@@ -1,11 +1,8 @@
 import { memo } from 'react'
 import { ScrollView, StyleSheet, Text, View } from 'react-native'
 import { colors, radii, spacing, typography } from '../../theme/mobile-theme'
-
-type Props = {
-  source: string
-  base: number
-}
+// The native component's own prop type, so a change to it fails here rather than drifting.
+import type { MermaidDiagramProps } from './MermaidDiagram'
 
 /**
  * Web sibling: the labelled source box, which is what the native component already falls back to.
@@ -22,7 +19,7 @@ type Props = {
  * with its own proof, so this series ships the degradation the component already defines and says
  * so, rather than a second renderer nobody has tested against hostile diagram source.
  */
-export const MermaidDiagram = memo(function MermaidDiagram({ source, base }: Props) {
+export const MermaidDiagram = memo(function MermaidDiagram({ source, base }: MermaidDiagramProps) {
   return (
     <View style={styles.frame}>
       <View style={styles.label}>

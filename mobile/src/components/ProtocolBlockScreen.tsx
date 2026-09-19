@@ -1,6 +1,6 @@
 import { openExternalLink } from '../platform/external-link'
+import { useRouteHandoff } from '../navigation/route-handoff'
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
-import { router } from 'expo-router'
 import { colors, radii, spacing, typography } from '../theme/mobile-theme'
 import type { CompatVerdict } from '../transport/protocol-compat'
 import type { MobileWebBundleCompatVerdict } from '../transport/mobile-web-bundle-compat'
@@ -66,6 +66,7 @@ function blockBody(verdict: BlockedVerdict, remedy: BlockRemedy, storeName: stri
 }
 
 export function ProtocolBlockScreen({ verdict }: Props) {
+  const router = useRouteHandoff()
   const remedy = blockRemedy(verdict)
   // Why: Android APKs ship through GitHub Releases until a Play Store listing exists.
   const mobileUpdateTarget =
@@ -107,8 +108,9 @@ export function ProtocolBlockScreen({ verdict }: Props) {
         <Pressable
           style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
           onPress={() => {
-            // Why: route back to the host list so the user can pair a
-            // different host instead of getting trapped on this screen.
+            // The handoff, not expo-router's singleton: `/` is the phone's home screen and the
+            // page does not carry it, so inside the shell a singleton replace renders the root
+            // route in the WebView rather than leaving it. This posts the target to the shell.
             router.replace('/')
           }}
         >
