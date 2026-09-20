@@ -15,7 +15,12 @@ export function isAntigravityReadyPromptSnapshot(text: string): boolean {
 
 function isModelRow(line: string): boolean {
   const trimmed = line.trim()
-  if (!trimmed || trimmed === '>' || trimmed.includes('antigravity cli')) {
+  if (
+    !trimmed ||
+    trimmed === '>' ||
+    trimmed.includes('antigravity cli') ||
+    /^resume with -c|^agy --conversation=/i.test(trimmed)
+  ) {
     return false
   }
   if (
