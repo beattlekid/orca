@@ -75,9 +75,9 @@ export function markCopilotFolderTrusted(workspacePath: string): void {
   try {
     if (existsSync(configPath)) {
       const raw = readFileSync(configPath, 'utf-8')
-      const parsed = JSON.parse(raw)
-      if (parsed && typeof parsed === 'object') {
-        config = parsed as Record<string, unknown>
+      const parsed: unknown = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        config = Object.fromEntries(Object.entries(parsed))
       }
     }
   } catch {
@@ -140,9 +140,7 @@ export function markAntigravityWorkspaceTrusted(workspacePath: string): void {
     // once the user accepts the trust prompt manually.
     return
   }
-  const existing = Array.isArray(config.trustedWorkspaces)
-    ? (config.trustedWorkspaces as unknown[])
-    : []
+  const existing = Array.isArray(config.trustedWorkspaces) ? config.trustedWorkspaces : []
   const normalizedExisting = existing.map((entry) =>
     typeof entry === 'string' ? canonicalize(entry) : null
   )
