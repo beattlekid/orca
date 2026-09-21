@@ -60,7 +60,7 @@ function findAntigravityComposerIndex(normalized: string, requireHeader: boolean
   let offset = 0
   let composerStart: number | null = null
   let workspaceBeforeComposer = false
-  let modelBeforeComposer = false
+  let workspaceAfterComposer = false
   let modelAfterComposer = false
   while (offset <= normalized.length) {
     const lineStart = offset
@@ -84,8 +84,8 @@ function findAntigravityComposerIndex(normalized: string, requireHeader: boolean
         value.startsWith('~/') || value.startsWith('/') || /^[a-z]:\\/i.test(value)
       if (composerStart === null) {
         workspaceBeforeComposer ||= isWorkspace
-        modelBeforeComposer ||= isModelRow(value)
       } else {
+        workspaceAfterComposer ||= isWorkspace
         modelAfterComposer ||= isModelRow(value)
       }
     }
@@ -109,7 +109,7 @@ function findAntigravityComposerIndex(normalized: string, requireHeader: boolean
   if (!workspaceBeforeComposer) {
     return modelAfterComposer ? null : composerStart
   }
-  return modelBeforeComposer || modelAfterComposer ? composerStart : null
+  return modelAfterComposer && !workspaceAfterComposer ? null : composerStart
 }
 
 export function hasAntigravityTerminalHeader(text: string): boolean {
