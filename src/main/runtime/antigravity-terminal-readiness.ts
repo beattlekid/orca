@@ -13,6 +13,20 @@ export function isAntigravityReadyPromptSnapshot(text: string): boolean {
   return findAntigravityComposerIndex(text.toLowerCase(), false) !== null
 }
 
+/**
+ * The composer is a bare `>` on the captured 3.7 Flash screens, but agy 1.2.7 paints the active
+ * edit mode into that same line (`> Accept-edits mode: file edits auto-approved (shift+tab to
+ * cycle)`), so a bare-caret-only rule never establishes readiness on a default 3.8 Flash launch.
+ *
+ * Why this stays narrow: every menu dialog also prefixes its highlighted row with `> ` —
+ * `> Yes, I trust this folder` (trust), `> Gemini 3.8 Flash` (model picker). Matching any
+ * `> <text>` would make all of them read as ready, which is the bug the bare-caret rule was
+ * guarding against. Only a caret alone, or a caret followed by `<name> mode:`, counts.
+ */
+function isComposerLine(value: string): boolean {
+  return value === '>' || /^>\s+[a-z][a-z-]*\s+mode:\s/i.test(value)
+}
+
 function isModelRow(line: string): boolean {
   const trimmed = line.trim()
   if (
@@ -60,13 +74,12 @@ function findAntigravityComposerIndex(normalized: string, requireHeader: boolean
     while (trimmedEnd > trimmedStart && isTerminalWaitWhitespace(normalized, trimmedEnd - 1)) {
       trimmedEnd -= 1
     }
-    if (trimmedStart >= contentStart && trimmedEnd - trimmedStart === 1) {
-      if (normalized.charCodeAt(trimmedStart) === 62) {
-        composerStart = trimmedStart
-        modelAfterComposer = false
-      }
+    const lineValue = normalized.slice(trimmedStart, trimmedEnd)
+    if (trimmedStart >= contentStart && isComposerLine(lineValue)) {
+      composerStart = trimmedStart
+      modelAfterComposer = false
     } else if (trimmedStart >= contentStart) {
-      const value = normalized.slice(trimmedStart, trimmedEnd)
+      const value = lineValue
       const isWorkspace =
         value.startsWith('~/') || value.startsWith('/') || /^[a-z]:\\/i.test(value)
       if (composerStart === null) {
