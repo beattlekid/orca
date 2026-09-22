@@ -32,6 +32,7 @@ not `--version`, and must tolerate the two disagreeing.
 | -------------------------------------------- | --------------------------------------------------------- |
 | `antigravity-ready-api-key-gemini-model.txt` | Ready screen, API-key identity, Gemini 3.7 Flash (Low)    |
 | `antigravity-ready-account-info-hidden.txt`  | The same ready screen with `AGY_CLI_HIDE_ACCOUNT_INFO=1`  |
+| `antigravity-ready-accept-edits-mode.txt` | Ready screen with accept-edits mode enabled |
 | `antigravity-dialog-trust-workspace.txt`     | Workspace trust dialog, live and unanswered               |
 | `antigravity-dialog-model-picker.txt`        | `/model` picker, live and unanswered                      |
 | `antigravity-dialog-command-palette.txt`     | Slash-command palette, live and unanswered                |

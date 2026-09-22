@@ -26,13 +26,9 @@ export async function markRemoteAgentWorkspaceTrusted(args: {
     await markRemoteCursorWorkspaceTrusted(fsProvider, home, workspacePath)
   } else if (args.preset === 'copilot') {
     await markRemoteCopilotFolderTrusted(fsProvider, home, workspacePath)
+  } else if (args.preset === 'antigravity') {
+    await markRemoteAntigravityWorkspaceTrusted(fsProvider, home, workspacePath)
   }
-  // KNOWN GAP: 'antigravity' is deliberately absent. The local preset writes
-  // ~/.gemini/antigravity-cli/settings.json, and the remote equivalent has not been verified
-  // against an SSH execution host, so an agy worker launched over SSH still raises its
-  // first-launch trust prompt and will stall at agent_readiness. Falling through silently
-  // matches the pre-existing behaviour for agy; it is recorded here rather than left as an
-  // unexplained omission. Mirror markRemoteCopilotFolderTrusted once it can be tested.
 }
 
 async function resolveRemoteHome(connectionId: string): Promise<string | null> {
@@ -149,6 +145,40 @@ async function markRemoteCopilotFolderTrusted(
     return
   }
   config.trustedFolders = [...existing.filter((entry) => typeof entry === 'string'), workspacePath]
+  await fsProvider.createDir(configDir)
+  await fsProvider.writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`)
+}
+
+async function markRemoteAntigravityWorkspaceTrusted(
+  fsProvider: IFilesystemProvider,
+  remoteHome: string,
+  workspacePath: string
+): Promise<void> {
+  const configDir = `${remoteHome}/.gemini/antigravity-cli`
+  const configPath = `${configDir}/settings.json`
+  const raw = await readRemoteTextFile(fsProvider, configPath)
+  let config: Record<string, unknown> = {}
+  if (raw.trim()) {
+    try {
+      const parsed = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        config = parsed as Record<string, unknown>
+      }
+    } catch {
+      return
+    }
+  }
+  const existing = Array.isArray(config.trustedWorkspaces)
+    ? (config.trustedWorkspaces as unknown[])
+    : []
+  if (existing.includes(workspacePath)) {
+    return
+  }
+  config.trustedWorkspaces = [
+    ...existing.filter((entry) => typeof entry === 'string'),
+    workspacePath
+  ]
+  await fsProvider.createDir(`${remoteHome}/.gemini`)
   await fsProvider.createDir(configDir)
   await fsProvider.writeFile(configPath, `${JSON.stringify(config, null, 2)}\n`)
 }

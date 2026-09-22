@@ -75,6 +75,12 @@ const TRANSCRIPTS: readonly TranscriptCase[] = [
     expectReady: true
   },
   {
+    name: 'antigravity-ready-accept-edits-mode',
+    capture: 'A',
+    what: 'ready screen with accept-edits mode enabled',
+    expectReady: true
+  },
+  {
     name: 'antigravity-dialog-trust-workspace',
     capture: 'C',
     what: 'workspace trust dialog owning the screen',
